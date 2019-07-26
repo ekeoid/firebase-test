@@ -10,15 +10,11 @@
 
 <body>
 
-  <!-- Text with spanID that gets filled with content -->
-  <p>After clicking, go to the firebase database to see the click counter go up.</p>
-  <p>
-    While clicking, put this html file to the left, and show the firebase database on the right to show how firebase is
-    real time!
-  </p>
+ <h1>Only
+  <span id="click-value"></span> clicks to go!!</h1>
 
-  <!-- Button -->
   <button id="click-button">Click Me!!!!</button>
+  <button id="restart-button">Restart</button>
 
   <!-- JQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -26,8 +22,8 @@
   <!-- ================================================================================== -->
 
   <!-- Firebase JavaScript Link -->
-  <script src="https://www.gstatic.com/firebasejs/6.3.3/firebase-app.js"></script>
-  
+  <script src="https://www.gstatic.com/firebasejs/6.3.3/firebase.js"></script>
+
   <script>
     // Your web app's Firebase configuration
     var firebaseConfig = {
@@ -46,23 +42,84 @@
     // ================================================================================
     // Get a reference to the database service
     var database = firebase.database();
-    // Initializing our click count at 0
-    var clickCounter = 0;
-    // Functions
-    // ================================================================================
-    // On Click
-    $("#click-button").on("click", function () {
-      // Add 1 to clickCounter
-      clickCounter++;
-      // **** Store Click Data to Firebase in a JSON property called clickCount *****
-      // **** Note how we are using the Firebase .set() method ****
-      // **** .ref() refers to the path you want to save your data to
-      // **** Since we left .ref() blank, it will save to the root directory
-      database.ref().set({
-        clickCount: clickCounter
-      });
-      // Now! go to https://fir-click-counter-7cdb9.firebaseio.com/ to see the impact to the DB
-    });
+
+    // Use the below initialValue
+var initialValue = 100;
+
+// Use the below variable clickCounter to keep track of the clicks.
+var clickCounter = initialValue;
+
+// --------------------------------------------------------------
+
+// At the initial load and on subsequent data value changes, get a snapshot of the current data. (I.E FIREBASE HERE)
+// This callback keeps the page updated when a value changes in firebase.
+database.ref().on("value", function(snapshot) {
+  // We are now inside our .on function...
+
+  // Console.log the "snapshot" value (a point-in-time representation of the database)
+  console.log(snapshot.val());
+  // This "snapshot" allows the page to get the most current values in firebase.
+
+  // Change the value of our clickCounter to match the value in the database
+  clickCounter = snapshot.val().clickCount;
+
+  // Console Log the value of the clickCounter
+  console.log(clickCounter);
+
+  // Change the HTML using jQuery to reflect the updated clickCounter value
+  $("#click-value").text(clickCounter);
+  // Alternate solution to the above line
+  // $("#click-value").html(clickCounter);
+
+// If any errors are experienced, log them to console.
+}, function(errorObject) {
+  console.log("The read failed: " + errorObject.code);
+});
+
+// --------------------------------------------------------------
+
+// Whenever a user clicks the click button
+$("#click-button").on("click", function() {
+
+  // Reduce the clickCounter by 1
+  clickCounter--;
+
+  // Alert User and reset the counter
+  if (clickCounter === 0) {
+    alert("Phew! You made it! That sure was a lot of clicking.");
+    clickCounter = initialValue;
+  }
+
+  // Save new value to Firebase
+  database.ref().set({
+    clickCount: clickCounter
+  });
+
+  // Log the value of clickCounter
+  console.log(clickCounter);
+
+});
+
+// Whenever a user clicks the restart button
+$("#restart-button").on("click", function() {
+
+  // Set the clickCounter back to initialValue
+  clickCounter = initialValue;
+
+  // Save new value to Firebase
+  database.ref().set({
+    clickCount: clickCounter
+  });
+
+  // Log the value of clickCounter
+  console.log(clickCounter);
+
+  // Change the HTML Values
+ // $("#click-value").text(clickCounter);
+
+});
+
+
   </script>
 
 </body>
